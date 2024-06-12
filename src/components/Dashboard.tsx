@@ -1,5 +1,5 @@
 'use client';
-
+// 3:26:19
 import { trpc } from '@/app/_trpc/client';
 import MaxWidthWrapper from './MaxWidthWrapper';
 import UploadButton from './UploadButton';
@@ -9,10 +9,11 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 import { Button } from './ui/button';
 import { useState } from 'react';
+import DeleteButton from './DeleteButton';
 
 const Dashboard = () => {
 	const [currentlyDeletingFile, setCurrentDeletingFile] = useState<string | null>(null);
-	const utils = trpc.useContext();
+	const utils = trpc.useContext(); //to invalidate some query value and refetch it or update it.
 
 	const { data: files, isLoading } = trpc.getUserFiles.useQuery();
 	const { mutate: deleteFile } = trpc.deleteFile.useMutation({
@@ -76,24 +77,26 @@ const Dashboard = () => {
 											mocked
 										</div>
 
-										<Button
-											onClick={() => deleteFile({ id: file.id })}
-											size={'sm'}
-											className='w-full'
-											variant='destructive'
-										>
-											{currentlyDeletingFile === file.id ? (
-												<Loader2 className='h-4 w-4 animate-spin' />
-											) : (
-												<Trash className='h-4 w-4' />
-											)}
-										</Button>
+										<DeleteButton
+											deleteFile={deleteFile}
+											file={file}
+											currentlyDeletingFile={currentlyDeletingFile}
+										/>
 									</div>
 								</li>
 							))}
 					</ul>
 				) : isLoading ? (
-					<Skeleton height={70} className='my-2' count={3} />
+					<div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+						{Array(6)
+							.fill(0)
+							.map((_, index) => (
+								<Skeleton
+									key={index}
+									className='my-2 h-10 sm:h-10 md:h-16 lg:h-20'
+								/>
+							))}
+					</div>
 				) : (
 					<div className='mt-16 flex flex-col items-center gap-2'>
 						<Ghost className='h-8 w-8 text-zinc-800' />
