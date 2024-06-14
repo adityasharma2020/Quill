@@ -5,6 +5,7 @@ import Messages from './Messages';
 import { ChevronLeft, Loader2, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import { buttonVariants } from '../ui/button';
+import { ChatContextProvider } from '@/context/ChatContext';
 
 interface ChatWrapperProps {
 	fileId: string;
@@ -16,7 +17,7 @@ const ChatWrapper = ({ fileId }: ChatWrapperProps) => {
 			fileId,
 		},
 		{
-			retry: true,
+			retry: 10,
 			refetchInterval: (data) =>
 				data?.state?.data?.status === 'SUCCESS' || data?.state.data?.status === 'FAILED'
 					? false
@@ -79,19 +80,21 @@ const ChatWrapper = ({ fileId }: ChatWrapperProps) => {
 					</div>
 				</div>
 
-				<ChatInput isDisabled='true' />
+				<ChatInput isDisabled={true} />
 			</div>
 		);
 	}
 
 	return (
-		<div className='relative min-h-full bg-zinc-50 flex divide-y divide-zinc-200 flex-col justify-between gap-2'>
-			<div className='flex-1 justify-between flex flex-col mb-28'>
-				<Messages />
-			</div>
+		<ChatContextProvider fileId={fileId}>
+			<div className='relative min-h-full bg-zinc-50 flex divide-y divide-zinc-200 flex-col justify-between gap-2'>
+				<div className='flex-1 justify-between flex flex-col mb-28'>
+					<Messages />
+				</div>
 
-			<ChatInput />
-		</div>
+				<ChatInput />
+			</div>
+		</ChatContextProvider>
 	);
 };
 

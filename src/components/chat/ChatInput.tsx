@@ -1,12 +1,16 @@
 import { Send } from 'lucide-react';
 import { Textarea } from '../ui/textarea';
 import { Button } from '../ui/button';
+import { useContext, useRef } from 'react';
+import { ChatContext } from '@/context/ChatContext';
 
 interface ChatInputProps {
-	isDisabled?: string;
+	isDisabled?: boolean;
 }
 
 const ChatInput = ({ isDisabled }: ChatInputProps) => {
+	const { addMessage, handleInputChange, isLoading, message } = useContext(ChatContext);
+	const textareaRef = useRef<HTMLTextAreaElement>(null);
 	return (
 		<div className='absolute bottom-0 left-0 w-full'>
 			<form className='mx-2 flex flex-row gap-3 md:mx-4 md:last:mb-2 lg:mx-auto lg:max-w-2xl xl:max-w-3xl'>
@@ -17,11 +21,34 @@ const ChatInput = ({ isDisabled }: ChatInputProps) => {
 								placeholder='Enter your question...'
 								rows={1}
 								autoFocus
+								ref={textareaRef}
 								maxRows={4}
+								onChange={handleInputChange}
+								value={message}
+								onKeyDown={(e) => {
+									if (e.key === 'Enter' && !e.shiftKey) {
+										e.preventDefault();
+
+										addMessage();
+
+										// adding focus back to the input
+										textareaRef.current?.focus();
+									}
+								}}
 								className='resize-none pr-12 text-base py-3 scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-light scrollbar-w-2 scrolling-touch'
 							/>
 
-							<Button className='absolute bottom-1 right-[8px]' aria-label='send message'>
+							<Button
+								disabled={isLoading || isDisabled}
+								className='absolute bottom-1 right-[8px]'
+								aria-label='send message'
+								type='submit'
+								onClick={() => {
+									addMessage();
+
+									textareaRef.current?.focus();
+								}}
+							>
 								<Send className='h-4 w-4' />
 							</Button>
 						</div>
