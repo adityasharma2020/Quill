@@ -31,7 +31,7 @@ const PdfFullScreen = ({ fileUrl }: pdfFullScreenProps) => {
 				</Button>
 			</DialogTrigger>
 
-			<DialogContent className='max-w-6xl w-full'>
+			<DialogContent className='max-w-6xl w-[95%] sm:w-full'>
 				<SimpleBar autoHide={false} className='max-h-[calc(100vh-7rem)] mt-6'>
 					<div ref={ref}>
 						<Document

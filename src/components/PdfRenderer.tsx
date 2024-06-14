@@ -79,20 +79,23 @@ const PdfRenderer = ({ url }: pdfRendererProps) => {
 						variant='ghost'
 						aria-label='previous page'
 					>
-						<ChevronDown className='h-4 w-4' />
+						<ChevronDown className='hh-4 w-4' />
 					</Button>
 
 					<div className='flex items-center gap-1.5'>
 						<Input
 							{...register('page')}
-							className={cn('w-12 h-8', errors.page && 'focus-visible:ring-red-500')}
+							className={cn(
+								'h-8 w-12',
+								errors.page && 'focus-visible:ring-red-500'
+							)}
 							onKeyDown={(e) => {
 								if (e.key === 'Enter') {
 									handleSubmit(handlePageSubmit)();
 								}
 							}}
 						/>
-						<p className='text-zinc-700 text-sm space-x-1'>
+						<p className='text-zinc-700 text-xs md:text-sm space-x-0'>
 							<span>/</span>
 							<span>{numPages ? numPages : 'x'}</span>
 						</p>
@@ -107,17 +110,17 @@ const PdfRenderer = ({ url }: pdfRendererProps) => {
 						variant='ghost'
 						aria-label='next page'
 					>
-						<ChevronUp className='h-4 w-4' />
+						<ChevronUp className='h-4 w-4 ' />
 					</Button>
 				</div>
 
-				<div className='space-x-2'>
+				<div className='space-x-0 md:space-x-2 '>
 					{/* zooming states dropdown */}
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
 							<Button className='gap-1.5' aria-label='zoom' variant='ghost'>
 								<ZoomIn className='h-4 w-4' />
-								{scale * 100}% <ChevronDown className='w-3 h-3 opacity-50' />
+								<span className='hidden sm:block'>{scale * 100}%</span> <ChevronDown className='w-3 h-3 opacity-50' />
 							</Button>
 						</DropdownMenuTrigger>
 
