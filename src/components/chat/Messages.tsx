@@ -62,20 +62,19 @@ const Messages = ({ fileId }: MessagesProps) => {
 						return (
 							<Message
 								ref={ref}
-								isNextMessageSamePerson={isNextMessageSamePerson}
 								message={message}
+								isNextMessageSamePerson={isNextMessageSamePerson}
 								key={message.id}
 							/>
 						);
-					} else {
+					} else
 						return (
 							<Message
-								isNextMessageSamePerson={isNextMessageSamePerson}
 								message={message}
+								isNextMessageSamePerson={isNextMessageSamePerson}
 								key={message.id}
 							/>
 						);
-					}
 				})
 			) : isLoading ? (
 				<div className='w-full flex flex-col gap-2'>
@@ -85,9 +84,9 @@ const Messages = ({ fileId }: MessagesProps) => {
 					<Skeleton className='h-16' />
 				</div>
 			) : (
-				<div className='flex-1 flex-col items-center justify-center gap-2'>
+				<div className='flex-1 flex flex-col items-center justify-center gap-2'>
 					<MessageSquare className='h-8 w-8 text-blue-500' />
-					<h3 className='font-semibold text-xl'>you&apos;re all set!</h3>
+					<h3 className='font-semibold text-xl'>You&apos;re all set!</h3>
 					<p className='text-zinc-500 text-sm'>Ask your first question to get started.</p>
 				</div>
 			)}
