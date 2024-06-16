@@ -2,7 +2,7 @@
     "redirects": [
       {
         "source": "https://quill-7k6ptamu8-adityasharma2020s-projects.vercel.app/dashboard/billing",
-        "destination": "https://quill-pdf-chat.vercel.app/dashboard/billing",
+        "destination": "https://quill-pdf-chat.vercel.app",
         "permanent": true
       }
     ]
