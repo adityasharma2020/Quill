@@ -10,8 +10,13 @@ import { format } from 'date-fns';
 import { Button } from './ui/button';
 import { useState } from 'react';
 import DeleteButton from './DeleteButton';
+import { getUserSubscriptionPlan } from '@/lib/stripe';
 
-const Dashboard = () => {
+interface PageProps {
+	subscriptionPlan: Awaited<ReturnType<typeof getUserSubscriptionPlan>>;
+}
+
+const Dashboard = ({ subscriptionPlan }: PageProps) => {
 	const [currentlyDeletingFile, setCurrentDeletingFile] = useState<string | null>(null);
 	const utils = trpc.useContext(); //to invalidate some query value and refetch it or update it.
 
@@ -34,7 +39,7 @@ const Dashboard = () => {
 				<div className='mt-8 flex flex-col items-start justify-between gap-4 border-b border-gray-200 pb-5 sm:flex-row sm:items-center sm:gap:1'>
 					<h1 className='mb-3 font-bold text-5xl text-gray-900'>My files</h1>
 
-					<UploadButton />
+					<UploadButton isSubscribed={subscriptionPlan.isSubscribed} />
 				</div>
 
 				{/* display all user files */}
@@ -43,7 +48,8 @@ const Dashboard = () => {
 						{files
 							.sort(
 								(a, b) =>
-									new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+									new Date(b.createdAt).getTime() -
+									new Date(a.createdAt).getTime()
 							)
 							.map((file) => (
 								<li
