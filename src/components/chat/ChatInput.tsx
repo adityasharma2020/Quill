@@ -28,7 +28,7 @@ const ChatInput = ({ isDisabled }: ChatInputProps) => {
 								onKeyDown={(e) => {
 									if (isLoading) return;
 
-									if (e.target?.value === '') return;
+									if (!message) return;
 									if (e.key === 'Enter' && !e.shiftKey) {
 										e.preventDefault();
 
@@ -46,9 +46,9 @@ const ChatInput = ({ isDisabled }: ChatInputProps) => {
 								className='absolute bottom-1 right-[8px]'
 								aria-label='send message'
 								onClick={(e) => {
-									console.log(e.target.value);
+
 									
-									if (!e.target?.value) return;
+									if (!message) return;
 
 									addMessage();
 
