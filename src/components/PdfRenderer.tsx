@@ -79,7 +79,7 @@ const PdfRenderer = ({ url }: pdfRendererProps) => {
 						variant='ghost'
 						aria-label='previous page'
 					>
-						<ChevronDown className='hh-4 w-4' />
+						<ChevronDown className='h-4 w-4' />
 					</Button>
 
 					<div className='flex items-center gap-1.5'>
@@ -120,7 +120,7 @@ const PdfRenderer = ({ url }: pdfRendererProps) => {
 						<DropdownMenuTrigger asChild>
 							<Button className='gap-1.5' aria-label='zoom' variant='ghost'>
 								<ZoomIn className='h-4 w-4' />
-								<span className='hidden sm:block'>{scale * 100}%</span> <ChevronDown className='w-3 h-3 opacity-50' />
+								<span className='hidden sm:block'>{scale * 100}%</span> <ChevronDown className='hidden sm:block w-3 h-3 opacity-50' />
 							</Button>
 						</DropdownMenuTrigger>
 
