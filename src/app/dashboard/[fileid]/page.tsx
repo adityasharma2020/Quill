@@ -1,6 +1,5 @@
 import ChatWrapper from '@/components/chat/ChatWrapper';
 import CsvRenderer from '@/components/csvRenderer/CsvRenderer';
-import ExcelRenderer from '@/components/ExcelRenderer';
 import PdfRenderer from '@/components/PdfRenderer';
 import { db } from '@/db';
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';

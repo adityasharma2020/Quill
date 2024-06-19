@@ -9,8 +9,8 @@ import { PineconeStore } from '@langchain/pinecone';
 import { pinecone } from '@/lib/pinecone';
 import { getUserSubscriptionPlan } from '@/lib/stripe';
 import { PLANS } from '@/config/stripe';
-import xlsx from 'xlsx';
-import { string } from 'zod';
+
+
 
 const f = createUploadthing();
 
@@ -26,30 +26,7 @@ const middleware = async () => {
 	return { subscriptionPlan, userId: user.id };
 };
 
-/* excel to csv convert blob */
-const convertExcelToCsv = async (blob: Blob): Promise<Blob> => {
-	return new Promise((resolve, reject) => {
-		const reader = new FileReader();
-		reader.onload = (e: ProgressEvent<FileReader>) => {
-			if (e.target?.result) {
-				try {
-					const data = new Uint8Array(e.target.result as ArrayBuffer);
-					const workbook = xlsx.read(data, { type: 'array' });
-					const sheetName = workbook.SheetNames[0];
-					const worksheet = workbook.Sheets[sheetName];
-					const csv = xlsx.utils.sheet_to_csv(worksheet);
-					const csvBlob = new Blob([csv], { type: 'text/csv' });
-					resolve(csvBlob);
-				} catch (error) {
-					reject(error);
-				}
-			} else {
-				reject(new Error('File read error'));
-			}
-		};
-		reader.readAsArrayBuffer(blob);
-	});
-};
+
 
 /* file  processing */
 const processFile = async (fileUrl: string, fileType: string) => {
@@ -65,12 +42,6 @@ const processFile = async (fileUrl: string, fileType: string) => {
 		case 'csv':
 			const csvLoader = new CSVLoader(blob);
 			pageLevelDocs = await csvLoader.load();
-			break;
-		case 'xls':
-		case 'xlsx':
-			const csvBlob = await convertExcelToCsv(blob);
-			const convertedCsvLoader = new CSVLoader(csvBlob);
-			pageLevelDocs = await convertedCsvLoader.load();
 			break;
 		default:
 			throw new Error('Unsupported file type');
