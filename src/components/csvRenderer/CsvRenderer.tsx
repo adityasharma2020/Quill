@@ -53,7 +53,7 @@ const CsvRenderer = ({ url }: CsvRendererProps) => {
 			} catch (error) {
 				toast({
 					title: 'Error fetching data',
-					description: "Error fetching data",
+					description: 'Error fetching data',
 					variant: 'destructive',
 				});
 				setLoading(false);
@@ -95,7 +95,12 @@ const CsvRenderer = ({ url }: CsvRendererProps) => {
 												key={cellIndex}
 												className='px-6 py-4 whitespace-nowrap text-sm text-gray-900'
 											>
-												{cell}
+												<td
+													key={cellIndex}
+													className='px-6 py-4 whitespace-nowrap text-sm text-gray-900'
+												>
+													{cell as string}
+												</td>
 											</td>
 										))}
 									</tr>
