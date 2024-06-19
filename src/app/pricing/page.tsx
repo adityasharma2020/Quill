@@ -19,12 +19,12 @@ const Page = async () => {
 			quota: 10,
 			features: [
 				{
-					text: '5 pages per PDF',
-					footnote: 'The maximum amount of pages per PDF-file.',
+					text: '5 pages per File',
+					footnote: 'The maximum amount of pages per file.',
 				},
 				{
 					text: '4MB file size limit',
-					footnote: 'The maximum file size of a single PDF file.',
+					footnote: 'The maximum file size of a single file.',
 				},
 				{
 					text: 'Mobile-friendly interface',
@@ -46,12 +46,12 @@ const Page = async () => {
 			quota: PLANS.find((p) => p.slug === 'pro')!.quota,
 			features: [
 				{
-					text: '25 pages per PDF',
-					footnote: 'The maximum amount of pages per PDF-file.',
+					text: '25 pages per file',
+					footnote: 'The maximum amount of pages per file.',
 				},
 				{
 					text: '16MB file size limit',
-					footnote: 'The maximum file size of a single PDF file.',
+					footnote: 'The maximum file size of a single file.',
 				},
 				{
 					text: 'Mobile-friendly interface',
@@ -111,14 +111,14 @@ const Page = async () => {
 
 									<div className='flex h-20 items-center justify-center border-b border-t border-gray-200 bg-gray-50'>
 										<div className='flex items-center space-x-1'>
-											<p>{quota.toLocaleString()} PDFs/mo included</p>
+											<p>{quota.toLocaleString()} Files/mo included</p>
 
 											<Tooltip delayDuration={300}>
 												<TooltipTrigger className='cursor-default ml-1.5'>
 													<HelpCircle className='h-4 w-4 text-zinc-500' />
 												</TooltipTrigger>
 												<TooltipContent className='w-80 p-2'>
-													How many PDFs you can upload per month.
+													How many Files you can upload per month.
 												</TooltipContent>
 											</Tooltip>
 										</div>

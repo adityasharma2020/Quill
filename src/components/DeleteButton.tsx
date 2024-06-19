@@ -29,7 +29,7 @@ const DeleteButton = ({ currentlyDeletingFile, file, deleteFile }: any) => {
 			<DialogContent>
 				<div className='flex flex-col items-center gap-2'>
 					<h3 className='font-semibold text-xl mb-4'>
-						Are you sure you want to Delete PDF ?
+						Are you sure you want to Delete File ?
 					</h3>
 
 					<div className='flex items-center w-full gap-4 justify-center'>

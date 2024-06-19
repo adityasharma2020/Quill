@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogTrigger } from './ui/dialog';
 import { Button } from './ui/button';
-
 import Dropzone from 'react-dropzone';
 import { Cloud, File, Loader2 } from 'lucide-react';
 import { Progress } from './ui/progress';
@@ -14,19 +13,21 @@ import { useRouter } from 'next/navigation';
 
 const UploadDropzone = ({ isSubscribed }: { isSubscribed: boolean }) => {
 	const router = useRouter();
-
 	const [isUploading, setIsUploading] = useState<boolean>(false);
 	const [uploadProgress, setUploadProgress] = useState<number>(0);
 	const { toast } = useToast();
 
-	const { startUpload } = useUploadThing(isSubscribed ? 'proPlanUploader' : 'freePlanUploader');
+	const freePlanCSVloader = useUploadThing('freePlanCSVloader');
+	const freePlanPDFloader = useUploadThing('freePlanPDFloader');
+	const proPlanCSVloader = useUploadThing('proPlanCSVloader');
+	const proPlanPDFloader = useUploadThing('proPlanPDFloader');
 
 	const { mutate: startPolling } = trpc.getFile.useMutation({
 		onSuccess: (file) => {
 			router.push(`/dashboard/${file.id}`);
 		},
 		retry: true,
-		retryDelay: 500,
+		retryDelay: 1500,
 	});
 
 	const startSimulatedProgress = () => {
@@ -45,41 +46,79 @@ const UploadDropzone = ({ isSubscribed }: { isSubscribed: boolean }) => {
 		return interval;
 	};
 
+	const handleFileUpload = async (acceptedFile:any) => {
+		if (!acceptedFile ) {
+			toast({
+				title: 'Invalid file',
+				description: 'Please select a valid file to upload.',
+				variant: 'destructive',
+			});
+			return;
+		}
+
+		setIsUploading(true);
+		const progressInterval = startSimulatedProgress();
+
+		const fileType = acceptedFile[0].name.split('.').pop().toLowerCase();
+		let startUpload;
+
+		if (fileType === 'pdf') {
+			startUpload = isSubscribed ? proPlanPDFloader.startUpload : freePlanPDFloader.startUpload;
+		} else if (['csv', 'xls', 'xlsx'].includes(fileType)) {
+			startUpload = isSubscribed ? proPlanCSVloader.startUpload : freePlanCSVloader.startUpload;
+		} else {
+			toast({
+				title: 'Unsupported file type',
+				description: 'Only CSV, XLS, XLSX, and PDF files are supported.',
+				variant: 'destructive',
+			});
+			setIsUploading(false);
+			clearInterval(progressInterval);
+			return;
+		}
+
+		// Handle file uploading
+		const res = await startUpload(acceptedFile);
+
+		if (!res) {
+			toast({
+				title: 'Something went wrong',
+				description: 'Please try again later',
+				variant: 'destructive',
+			});
+			setIsUploading(false);
+			clearInterval(progressInterval);
+			return;
+		}
+
+		const [fileResponse] = res;
+
+		const key = fileResponse?.key;
+
+		if (!key) {
+			toast({
+				title: 'Something went wrong',
+				description: 'Please try again later',
+				variant: 'destructive',
+			});
+			setIsUploading(false);
+			clearInterval(progressInterval);
+			return;
+		}
+
+		clearInterval(progressInterval);
+		setUploadProgress(100);
+
+		startPolling({ key });
+	};
+
 	return (
 		<Dropzone
 			multiple={false}
 			onDrop={async (acceptedFile) => {
-				setIsUploading(true);
-
-				const progressInterval = startSimulatedProgress();
-
-				// handle file uploading
-				const res = await startUpload(acceptedFile);
-
-				if (!res) {
-					return toast({
-						title: 'Something went wrong',
-						description: 'Please try again later',
-						variant: 'destructive',
-					});
-				}
-
-				const [fileResponse] = res;
-
-				const key = fileResponse?.key;
-
-				if (!key) {
-					return toast({
-						title: 'Something went wrong',
-						description: 'Please try again later',
-						variant: 'destructive',
-					});
-				}
-
-				clearInterval(progressInterval);
-				setUploadProgress(100);
-
-				startPolling({ key });
+				
+					await handleFileUpload(acceptedFile);
+				
 			}}
 		>
 			{({ getRootProps, getInputProps, acceptedFiles }) => (
@@ -99,7 +138,7 @@ const UploadDropzone = ({ isSubscribed }: { isSubscribed: boolean }) => {
 									and drop
 								</p>
 								<p className='text-xs text-zinc-500'>
-									PDF (up to {isSubscribed ? '16' : '4'}MB)
+									CSV or PDF (up to {isSubscribed ? '16' : '4'}MB)
 								</p>
 							</div>
 
@@ -159,7 +198,7 @@ const UploadButton = ({ isSubscribed }: { isSubscribed: boolean }) => {
 			}}
 		>
 			<DialogTrigger onClick={() => setIsOpen(true)} asChild>
-				<Button>Upload PDF</Button>
+				<Button>Upload CSV or PDF</Button>
 			</DialogTrigger>
 
 			<DialogContent>

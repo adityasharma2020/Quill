@@ -1,9 +1,9 @@
 import { cn } from '@/lib/utils';
 import { ExtendedMessage } from '@/types/message';
 import { Icons } from '../Icons';
-import ReactMarkDown from 'react-markdown';
 import { format } from 'date-fns';
 import { forwardRef } from 'react';
+import ReactMarkdown from 'react-markdown';
 
 interface MessageProps {
 	message: ExtendedMessage;
@@ -51,13 +51,14 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
 						})}
 					>
 						{typeof message.text === 'string' ? (
-							<ReactMarkDown
+							<ReactMarkdown
+			
 								className={cn('prose', {
 									'text-zinc-50': message.isUserMessage,
 								})}
 							>
 								{message.text}
-							</ReactMarkDown>
+							</ReactMarkdown>
 						) : (
 							message.text
 						)}

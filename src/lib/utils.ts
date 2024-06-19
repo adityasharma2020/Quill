@@ -8,12 +8,12 @@ export function cn(...inputs: ClassValue[]) {
 
 export function absoluteUrl(path: string) {
 	if (typeof window !== 'undefined') return path;
-	if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}${path}`;
+	if (process.env.VERCEL_URL) return `https://quill-pdf-chat.vercel.app/${path}`;
 	return `http://localhost:${process.env.PORT ?? 3000}${path}`;
 }
 export function constructMetadata({
 	title = 'Quill - the SaaS for professionals.',
-	description = 'Quill is an open-source software to make chatting to your PDF files easy.',
+	description = 'Quill is an open-source software to make chatting to your CSV or PDF files easy.',
 	image = '/thumbnail.png',
 	icons = '/favicon.ico',
 	noIndex = false,

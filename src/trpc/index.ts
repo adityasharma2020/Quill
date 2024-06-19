@@ -62,7 +62,7 @@ export const appRouter = router({
 
 		const subscriptionPlan = await getUserSubscriptionPlan();
 
-		console.log('sdfsdsf', subscriptionPlan);
+	
 		if (subscriptionPlan.isSubscribed && dbUser.stripeCustomerId) {
 			const stripeSession = await stripe.billingPortal.sessions.create({
 				customer: dbUser.stripeCustomerId,
@@ -71,7 +71,7 @@ export const appRouter = router({
 
 			return { url: stripeSession.url };
 		}
-		console.log('before session');
+	
 
 		const stripeSession = await stripe.checkout.sessions.create({
 			success_url: billingUrl,

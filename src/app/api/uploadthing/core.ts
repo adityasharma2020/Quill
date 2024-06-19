@@ -2,12 +2,14 @@ import { db } from '@/db';
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
 import { createUploadthing, type FileRouter } from 'uploadthing/next';
 import { PDFLoader } from 'langchain/document_loaders/fs/pdf';
+import { CSVLoader } from 'langchain/document_loaders/fs/csv';
 import { Document } from '@langchain/core/documents';
 import { OpenAIEmbeddings } from '@langchain/openai';
 import { PineconeStore } from '@langchain/pinecone';
 import { pinecone } from '@/lib/pinecone';
 import { getUserSubscriptionPlan } from '@/lib/stripe';
 import { PLANS } from '@/config/stripe';
+import xlsx from 'xlsx';
 import { string } from 'zod';
 
 const f = createUploadthing();
@@ -15,12 +17,66 @@ const f = createUploadthing();
 const middleware = async () => {
 	const { getUser } = getKindeServerSession();
 	const user = await getUser();
+	
 
 	if (!user || !user?.id) throw new Error('Unauthorized');
 
 	const subscriptionPlan = await getUserSubscriptionPlan();
 
 	return { subscriptionPlan, userId: user.id };
+};
+
+/* excel to csv convert blob */
+const convertExcelToCsv = async (blob: Blob): Promise<Blob> => {
+	return new Promise((resolve, reject) => {
+		const reader = new FileReader();
+		reader.onload = (e: ProgressEvent<FileReader>) => {
+			if (e.target?.result) {
+				try {
+					const data = new Uint8Array(e.target.result as ArrayBuffer);
+					const workbook = xlsx.read(data, { type: 'array' });
+					const sheetName = workbook.SheetNames[0];
+					const worksheet = workbook.Sheets[sheetName];
+					const csv = xlsx.utils.sheet_to_csv(worksheet);
+					const csvBlob = new Blob([csv], { type: 'text/csv' });
+					resolve(csvBlob);
+				} catch (error) {
+					reject(error);
+				}
+			} else {
+				reject(new Error('File read error'));
+			}
+		};
+		reader.readAsArrayBuffer(blob);
+	});
+};
+
+/* file  processing */
+const processFile = async (fileUrl: string, fileType: string) => {
+	const response = await fetch(fileUrl);
+	const blob = await response.blob();
+	let pageLevelDocs: Document[];
+
+	switch (fileType) {
+		case 'pdf':
+			const pdfLoader = new PDFLoader(blob);
+			pageLevelDocs = await pdfLoader.load();
+			break;
+		case 'csv':
+			const csvLoader = new CSVLoader(blob);
+			pageLevelDocs = await csvLoader.load();
+			break;
+		case 'xls':
+		case 'xlsx':
+			const csvBlob = await convertExcelToCsv(blob);
+			const convertedCsvLoader = new CSVLoader(csvBlob);
+			pageLevelDocs = await convertedCsvLoader.load();
+			break;
+		default:
+			throw new Error('Unsupported file type');
+	}
+
+	return pageLevelDocs;
 };
 
 const onUploadComplete = async ({
@@ -34,6 +90,7 @@ const onUploadComplete = async ({
 		url: string;
 	};
 }) => {
+
 	const isFileExist = await db.file.findFirst({
 		where: {
 			key: file.key,
@@ -41,6 +98,8 @@ const onUploadComplete = async ({
 	});
 
 	if (isFileExist) return;
+	const fileType = file.name.split('.').pop();
+
 	const createdFile = await db.file.create({
 		data: {
 			key: file.key,
@@ -48,31 +107,31 @@ const onUploadComplete = async ({
 			userId: metadata.userId,
 			url: `https://utfs.io/f/${file.key}`,
 			uploadStatus: 'PROCESSING',
+			fileType: fileType!,
 		},
 	});
 
-	/*  Index the pdf in our vector database  */
+	/*  Index the file in our vector database  */
 	try {
-		/* fetching the url in memory  */
-		const response = await fetch(`https://utfs.io/f/${file.key}`);
-		/* we can use it to generate the index in our vector database, first we need to convert our pdf to a blob */
-		const blob = await response.blob();
+		/* Processing the file based on its type */
+		const pageLevelDocs = await processFile(`https://utfs.io/f/${file.key}`, fileType!);
 
-		// Load the pdf file in memory using a loader
-		const loader = new PDFLoader(blob);
-
-		// Extract page level text (document) of pdf
-		const pageLevelDocs = await loader.load();
-
-		// Amount of pages (pages amount), each document in array is one actual page of our pdf
+		// Amount of pages (pages amount), each document in array is one actual page of our PDF or row of our CSV
 		const pagesAmt = pageLevelDocs.length;
 		const { subscriptionPlan } = metadata;
 		const { isSubscribed } = subscriptionPlan;
+	
 
-		//to check pro limit excedded or not
+		// Check if pro limit is exceeded
 		const isProExceeded = pagesAmt > PLANS.find((plan) => plan.name === 'Pro')!.pagesPerPDF;
 		const isFreeExceeded = pagesAmt > PLANS.find((plan) => plan.name === 'Free')!.pagesPerPDF;
-		if ((isSubscribed && isProExceeded) || (!isSubscribed && isFreeExceeded)) {
+
+		if (
+			fileType === 'pdf' &&
+			((isSubscribed && isProExceeded) || (!isSubscribed && isFreeExceeded))
+		) {
+			
+
 			await db.file.update({
 				data: {
 					uploadStatus: 'FAILED',
@@ -81,6 +140,7 @@ const onUploadComplete = async ({
 					id: createdFile.id,
 				},
 			});
+			return;
 		}
 
 		// Vectorize and index entire document
@@ -109,7 +169,6 @@ const onUploadComplete = async ({
 		console.log('success');
 	} catch (err) {
 		console.error('error:', err);
-
 		await db.file.update({
 			data: {
 				uploadStatus: 'FAILED',
@@ -122,10 +181,16 @@ const onUploadComplete = async ({
 };
 
 export const ourFileRouter = {
-	freePlanUploader: f({ pdf: { maxFileSize: '4MB' } })
+	freePlanCSVloader: f({ text: { maxFileSize: '4MB' } })
 		.middleware(middleware)
 		.onUploadComplete(onUploadComplete),
-	proPlanUploader: f({ pdf: { maxFileSize: '16MB' } })
+	freePlanPDFloader: f({ pdf: { maxFileSize: '4MB' } })
+		.middleware(middleware)
+		.onUploadComplete(onUploadComplete),
+	proPlanCSVloader: f({ text: { maxFileSize: '16MB' } })
+		.middleware(middleware)
+		.onUploadComplete(onUploadComplete),
+	proPlanPDFloader: f({ pdf: { maxFileSize: '16MB' } })
 		.middleware(middleware)
 		.onUploadComplete(onUploadComplete),
 } satisfies FileRouter;

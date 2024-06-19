@@ -161,7 +161,7 @@ const PdfRenderer = ({ url }: pdfRendererProps) => {
 							onLoadSuccess={({ numPages }) => setNumPages(numPages!)}
 							onLoadError={() => {
 								toast({
-									title: 'Error loading PDF.',
+									title: 'Error loading File.',
 									description: 'Please try again later.',
 									variant: 'destructive',
 								});
